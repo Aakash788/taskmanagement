@@ -1,13 +1,34 @@
 const Routes = require('express').Router();
 const Todo = require('../models/task');
-// const upload = require('../middleware/upload');
-const upload = require('../middleware/upload');
+const multer = require('multer');
+const path = require('path');
 
 module.exports = Routes;
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'public/images');
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + path.extname(file.originalname));
+    }
+  });
+  
+  const upload = multer({ storage });
+  
+  // Image upload route
+  Routes.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+    res.json({ url: '/images/' + req.file.filename });
+  });
+
 // Routes
 Routes.get('/',  async (req, res) => {
+    const userId = req.user.id;
     try {
-        const tasks = await Todo.find({});
+        const tasks = await Todo.find({ userId: userId });
         res.render('index', { tasks: tasks });
     } catch (err) {
         console.log(err);
@@ -15,12 +36,14 @@ Routes.get('/',  async (req, res) => {
     }
 });
 
-Routes.post('/addtask', upload, async(req, res) => {
+Routes.post('/addtask', upload.single('image'), async(req, res) => {
     try {
+        const userId = req.user.id;
         const newTask = new Todo({
             subject: req.body.subject,
             description: req.body.description,
-            image: req.file ? req.file.filename : ''
+            image: req.file ? req.file.filename : '',
+            user: userId,
         });
         await newTask.save();
         res.redirect('/');
@@ -30,6 +53,7 @@ Routes.post('/addtask', upload, async(req, res) => {
     }
 });
 
+  
 Routes.get('/edit/:id', async (req, res) => {
     try {
         const task = await Todo.findById(req.params.id);
@@ -40,7 +64,7 @@ Routes.get('/edit/:id', async (req, res) => {
     }
 });
 
-Routes.put('/edit/:id', upload, async (req, res) => {
+Routes.put('/edit/:id',upload.single('image'), async (req, res) => {
     try {
         const updatedTask = {
             subject: req.body.subject,

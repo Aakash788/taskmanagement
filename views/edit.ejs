@@ -21,7 +21,7 @@
 </head>
 <body>
     <h1>Edit Task</h1>
-    <form action="/edit/<%= task._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+    <form action="/task/edit/<%= task._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
         <input type="text" name="subject" value="<%= task.subject %>" required>
         <div id="editor-container" style="height: 200px;"></div>
         <input type="hidden" name="description" id="description">
@@ -30,7 +30,7 @@
         <% } %>
         <button type="submit">Update Task</button>
     </form>
-    <a href="/">Back to Task List</a>
+    <a href="/task">Back to Task List</a>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
