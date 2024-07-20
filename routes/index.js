@@ -1,26 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const Todo = require('../models/Task'); // Adjust the path as necessary
+const Routes = require('express').Router();
+const Todo = require('../models/task');
 // const upload = require('../middleware/upload');
-const { ensureAuthenticated } = require('../config/auth');
-const multer = require('multer');
-const path = require('path');
+const upload = require('../middleware/upload');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage: storage });
-
-
-
-
-router.get('/', ensureAuthenticated, async (req, res) => {
+module.exports = Routes;
+// Routes
+Routes.get('/',  async (req, res) => {
     try {
         const tasks = await Todo.find({});
         res.render('index', { tasks: tasks });
@@ -30,7 +15,7 @@ router.get('/', ensureAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/addtask', ensureAuthenticated, upload.single('image'), async (req, res) => {
+Routes.post('/addtask', upload, async(req, res) => {
     try {
         const newTask = new Todo({
             subject: req.body.subject,
@@ -45,7 +30,17 @@ router.post('/addtask', ensureAuthenticated, upload.single('image'), async (req,
     }
 });
 
-router.put('/edit/:id', ensureAuthenticated, upload.single('image'), async (req, res) => {
+Routes.get('/edit/:id', async (req, res) => {
+    try {
+        const task = await Todo.findById(req.params.id);
+        res.render('edit', { task: task });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+Routes.put('/edit/:id', upload, async (req, res) => {
     try {
         const updatedTask = {
             subject: req.body.subject,
@@ -60,7 +55,7 @@ router.put('/edit/:id', ensureAuthenticated, upload.single('image'), async (req,
     }
 });
 
-router.post('/removetask', ensureAuthenticated, async (req, res) => {
+Routes.post('/removetask', async (req, res) => {
     try {
         const taskId = req.body.taskId;
         console.log(`Attempting to remove task with ID: ${taskId}`);
@@ -78,5 +73,3 @@ router.post('/removetask', ensureAuthenticated, async (req, res) => {
     }
 });
 
-
-module.exports = router;
