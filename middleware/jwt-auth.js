@@ -11,6 +11,8 @@ module.exports = (req, res, next) => {
       const verified = jwt.verify(token, mysecrate);
       console.log(verified);
       req.user = verified;
+      console.log(req.user);
+      console.log(req.user.userId);
       next();
     } catch (error) {
       // console.log(error);

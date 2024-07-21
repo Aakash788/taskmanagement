@@ -1,6 +1,8 @@
+require('dotenv').config();
 const router = require('express').Router();
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const mysecret = process.env.SECRET_KEY;
 
 router.get('/register', (req, res) => {
@@ -13,7 +15,10 @@ router.post('/register', async (req, res) => {
         if(!username || !password){
             return res.status(400).send('All fields are required').redirect('/user/register');
         }
-        const user = new User({username, password});
+        let hashpassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
+        // console.log(hashpassword); 
+        const user = new User({username, password: hashedPassword});
         // console.log(username);
         // console.log(password); 
         await user.save();
@@ -32,7 +37,8 @@ router.post('/login', async (req, res) => {
     try {
         const {username, password} = req.body;
         const user = await User.findOne({username});
-        if (!user || user.password !== password){
+        
+        if (!user || !(await bcrypt.compare(password, user.password))) {
 
             res.redirect('/user/login?message="Invalid username or password"');
         }

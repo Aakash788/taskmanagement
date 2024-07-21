@@ -26,9 +26,10 @@ const storage = multer.diskStorage({
 
 // Routes
 Routes.get('/',  async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.user.userId;
+    // console.log(userId);
     try {
-        const tasks = await Todo.find({ userId: userId });
+        const tasks = await Todo.find({ user: userId });
         res.render('index', { tasks: tasks });
     } catch (err) {
         console.log(err);
@@ -37,8 +38,14 @@ Routes.get('/',  async (req, res) => {
 });
 
 Routes.post('/addtask', upload.single('image'), async(req, res) => {
+    if (!req.user || !req.user.userId) {
+        // console.log(req.user);
+        return res.redirect('/user/login?message=Please login to add a task');
+    }
     try {
-        const userId = req.user.id;
+        // console.log(req.user);
+        let userId = req.user.userId;
+        console.log(userId);
         const newTask = new Todo({
             subject: req.body.subject,
             description: req.body.description,

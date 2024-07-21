@@ -4,7 +4,15 @@ const todoSchema = new mongoose.Schema({
     subject: String,
     description: String,
     image: String,
-    user: String,
+    completed: {
+        type: Boolean,
+        default: false
+      },
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      }
     
 });
 
